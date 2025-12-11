@@ -55,6 +55,75 @@ body {
   100% { transform: rotate(360deg); }
 }
 
+/* Custom animations for professional UI */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.6);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.4s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+/* Backdrop blur utilities */
+.backdrop-blur-glass {
+  backdrop-filter: blur(12px) saturate(180%);
+}
+
+/* Gradient backgrounds */
+.bg-gradient-radial {
+  background: radial-gradient(circle at center, var(--tw-gradient-stops));
+}
+
 /* Incident markers */
 .incident-marker-fire {
   background-color: #DC2626;
@@ -95,4 +164,28 @@ body {
 .urgency-low {
   background-color: #059669;
   color: white;
+}
+
+/* Leaflet Popup Enhancements */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-popup-content {
+  margin: 8px 12px;
+  line-height: 1.6;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+/* Smooth image loading */
+.leaflet-popup-content img {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.leaflet-popup-content img:not([src]) {
+  opacity: 0;
 }

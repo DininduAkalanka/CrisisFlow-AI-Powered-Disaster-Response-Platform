@@ -8,6 +8,24 @@
 
 An intelligent disaster response platform that leverages state-of-the-art AI/ML models to analyze, classify, and coordinate emergency incidents in real-time. CrisisFlow combines computer vision, natural language processing, and geospatial analytics to streamline disaster management operations.
 
+## 📸 Screenshots
+
+### Interactive Map View with Incident Photos
+![Map View](screenshots/map-view.png)
+*Real-time incident mapping with photo popups showing disaster details and AI analysis*
+
+### Command Center Dashboard
+![Dashboard](screenshots/dashboard.png)
+*Live statistics, trends analysis, and KPI monitoring for emergency response coordination*
+
+### Geographic Hotspots Analysis
+![Hotspots](screenshots/hotspots.png)
+*High-density incident areas visualization for resource allocation*
+
+### Incident Reporting Interface
+![Report Incident](screenshots/report-incident.png)
+*User-friendly incident submission form with AI verification and location search*
+
 ## 🌟 Key Features
 
 ### 🤖 Advanced AI/ML Capabilities

@@ -102,8 +102,13 @@ async def create_incident(
         
         # Store CLIP embedding (for semantic duplicate detection)
         if image_analysis.get("embedding") is not None:
-            embedding_str = ','.join(map(str, image_analysis["embedding"]))
-            incident.clip_embedding = f"[{embedding_str}]"
+            embedding = image_analysis["embedding"]
+            # Verify embedding dimension matches database schema (512 for CLIP ViT-B/32)
+            if len(embedding) == 512:
+                incident.clip_embedding = embedding.tolist() if hasattr(embedding, 'tolist') else list(embedding)
+            else:
+                print(f"⚠️  Warning: CLIP embedding has {len(embedding)} dimensions, expected 512. Skipping embedding storage.")
+                incident.clip_embedding = None
         
         # Check if image is disaster-related
         classification = image_analysis.get("classification", {})

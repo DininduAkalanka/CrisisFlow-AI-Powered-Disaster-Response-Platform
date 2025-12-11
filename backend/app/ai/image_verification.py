@@ -124,6 +124,9 @@ class VisionService:
                 has_pgvector = db.execute(check_pgvector).fetchone() is not None
                 
                 if has_pgvector:
+                    # Convert embedding to string format for pgvector
+                    embedding_str = '[' + ','.join(map(str, clip_embedding.tolist())) + ']'
+                    
                     # Query pgvector for similar images (Cosine Similarity > 0.95)
                     query = text("""
                         SELECT 
@@ -140,7 +143,7 @@ class VisionService:
                     result = db.execute(
                         query,
                         {
-                            "embedding": clip_embedding.tolist(),
+                            "embedding": embedding_str,
                             "threshold": self.duplicate_threshold
                         }
                     ).fetchone()
@@ -155,7 +158,9 @@ class VisionService:
                 else:
                     print("⚠ pgvector not installed - duplicate detection disabled")
             except Exception as e:
-                print(f"⚠ Duplicate detection failed (pgvector may not be installed): {str(e)}")
+                print(f"⚠ Duplicate detection failed: {str(e)}")
+                # Rollback the transaction to prevent "transaction aborted" errors
+                db.rollback()
                 # Continue without duplicate detection
             
             # ===== STEP 4: Return Results =====

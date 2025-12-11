@@ -178,10 +178,10 @@ function MapView() {
             position={[incident.latitude, incident.longitude]}
             icon={getMarkerIcon(incident)}
           >
-            <Popup>
-              <div className="p-2 max-w-xs">
-                <h3 className="font-bold text-lg mb-2">{incident.title}</h3>
-                <p className="text-sm text-gray-600 mb-2">
+            <Popup maxWidth={320} minWidth={280}>
+              <div className="p-2">
+                <h3 className="font-bold text-lg mb-2 text-gray-800">{incident.title}</h3>
+                <p className="text-sm text-gray-600 mb-3">
                   {truncateText(incident.description, 100)}
                 </p>
                 
@@ -221,11 +221,18 @@ function MapView() {
                 </div>
 
                 {incident.image_url && (
-                  <img
-                    src={incident.image_url}
-                    alt="Incident"
-                    className="mt-2 rounded-lg w-full"
-                  />
+                  <div className="mt-3 border-t pt-3">
+                    <p className="text-xs font-medium text-gray-500 mb-2">Incident Photo:</p>
+                    <img
+                      src={incident.image_url}
+                      alt="Incident"
+                      className="rounded-lg w-full h-auto max-h-48 object-cover shadow-sm"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        console.error('Failed to load image:', incident.image_url);
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             </Popup>
