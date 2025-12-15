@@ -479,7 +479,7 @@ curl -X POST "http://localhost:8000/api/v1/incidents" \
   "incident_type": "flood",
   "urgency_level": "critical",
   "status": "pending",
-  "reporter_name": "John Doe",
+  "reporter_name": "Dinindu Cooray",
   "reporter_contact": "+94771234567",
   "ai_confidence_score": 0.89,
   "ai_detected_classes": [
