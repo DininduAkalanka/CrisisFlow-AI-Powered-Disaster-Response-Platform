@@ -605,7 +605,3 @@ For technology-specific questions:
 - **PostgreSQL**: [Mailing Lists](https://www.postgresql.org/list/)
 
 ---
-
-**Last Updated**: December 10, 2025  
-**Maintainers**: CrisisFlow Development Team  
-**Version**: 1.0.0
