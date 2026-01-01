@@ -15,7 +15,7 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard"])
 
 @router.get("/stats", response_model=DashboardStats)
 def get_dashboard_stats(db: Session = Depends(get_db)):
-    """Get dashboard statistics"""
+    """Retrieve aggregated incident statistics including status counts, critical alerts, and temporal metrics"""
     
     # Total incidents
     total = db.query(Incident).count()
@@ -64,7 +64,7 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
 
 @router.get("/clusters")
 async def get_clusters(db: Session = Depends(get_db)):
-    """Get incident clusters using PostGIS ST_ClusterDBSCAN"""
+    """Execute geospatial clustering using PostGIS ST_ClusterDBSCAN to group nearby incidents"""
     
     try:
         # Run PostGIS-based clustering
@@ -90,7 +90,7 @@ def get_heatmap_data(
     hours: int = 24,
     db: Session = Depends(get_db)
 ):
-    """Get incident data for heatmap visualization"""
+    """Generate heatmap data points with intensity weighted by urgency level for spatial visualization"""
     
     cutoff_time = datetime.now() - timedelta(hours=hours)
     incidents = db.query(Incident).filter(
@@ -126,7 +126,7 @@ def get_timeline(
     days: int = 7,
     db: Session = Depends(get_db)
 ):
-    """Get incident timeline data"""
+    """Generate time-series data of incidents grouped by date and type for temporal analysis"""
     
     cutoff_time = datetime.now() - timedelta(days=days)
     

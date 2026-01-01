@@ -12,6 +12,11 @@ const PRIORITY_COLORS = {
   low: '#10B981'
 };
 
+/**
+ * Dashboard Component
+ * Real-time command center displaying incident analytics, statistics, clusters, and temporal data
+ * Features auto-refresh every 30 seconds and comprehensive data visualizations using Recharts
+ */
 function Dashboard() {
   const location = useLocation(); // Track route changes
   const [stats, setStats] = useState(null);
@@ -31,9 +36,7 @@ function Dashboard() {
         setLoading(true);
       }
 
-      console.log('🔄 Loading dashboard data...', { isRefresh, timestamp: new Date().toISOString() });
-
-      // Parallel API calls for better performance
+// Parallel API calls for better performance
       const [statsData, clustersData, areasData, timelineData] = await Promise.all([
         dashboardAPI.getStats(),
         dashboardAPI.getClusters(),
@@ -41,21 +44,14 @@ function Dashboard() {
         dashboardAPI.getTimeline(),
       ]);
 
-      console.log('✅ Dashboard data loaded:', {
-        stats: statsData,
-        clustersCount: clustersData.clusters?.length || 0,
-        areasCount: areasData.top_areas?.length || 0,
-        timelineDays: Object.keys(timelineData.timeline || {}).length
-      });
-
-      // Update state with fresh data
+// Update state with fresh data
       setStats(statsData);
       setClusters(clustersData.clusters || []);
       setTopAreas(areasData.top_areas || []);
       setTimeline(timelineData.timeline || {});
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('❌ Error loading dashboard:', error);
+      console.error('Error loading dashboard:', error);
       console.error('Error details:', {
         message: error.message,
         response: error.response?.data,
@@ -69,21 +65,17 @@ function Dashboard() {
 
   // Initial load and auto-refresh setup
   useEffect(() => {
-    console.log('🎯 Dashboard mounted or route changed:', location.pathname);
-    
-    // Load data immediately whenever we navigate to dashboard
+// Load data immediately whenever we navigate to dashboard
     loadDashboardData();
 
     // Set up auto-refresh every 30 seconds
     const intervalId = setInterval(() => {
-      console.log('⏰ Auto-refresh triggered');
-      loadDashboardData(true);
+loadDashboardData(true);
     }, 30000); // 30 seconds
 
     // Cleanup interval on unmount
     return () => {
-      console.log('🧹 Dashboard cleanup - clearing interval');
-      clearInterval(intervalId);
+clearInterval(intervalId);
     };
   }, [loadDashboardData, location.pathname]); // Re-run when route changes
 

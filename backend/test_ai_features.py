@@ -28,9 +28,9 @@ try:
     print(f"  Resources: {result['entities']['resource_needed']}")
     print(f"  Contact: {result['entities']['contact_info']}")
     print(f"  Urgency Level: {result['urgency_level']}")
-    print("✓ NLP Service: PASSED")
+    print("PASS: NLP Service")
 except Exception as e:
-    print(f"✗ NLP Service: FAILED - {e}")
+    print(f"FAIL: NLP Service - {e}")
 
 # Test 2: Clustering Service (PostGIS)
 print("\n[TEST 2] Clustering Service (PostGIS)")
@@ -39,10 +39,10 @@ try:
     from app.ai.clustering import get_clustering_service
     
     clustering = get_clustering_service()
-    print(f"✓ Clustering parameters: eps={clustering.eps}, minpoints={clustering.minpoints}")
-    print("✓ Clustering Service: READY (requires database connection to test)")
+    print(f"Clustering parameters: eps={clustering.eps}, minpoints={clustering.minpoints}")
+    print("READY: Clustering Service (requires database connection to test)")
 except Exception as e:
-    print(f"✗ Clustering Service: FAILED - {e}")
+    print(f"FAIL: Clustering Service - {e}")
 
 # Test 3: Vision Service (EfficientNetV2 + CLIP) 
 print("\n[TEST 3] Vision Service (EfficientNetV2 + CLIP)")
@@ -52,12 +52,12 @@ try:
     
     print("Loading models (may take 1-2 minutes on first run)...")
     vision = get_vision_service()
-    print("✓ Vision Service: LOADED")
+    print("LOADED: Vision Service")
     print(f"  Device: {vision.device}")
     print(f"  Classes: {vision.class_labels}")
     print("  Note: Image analysis requires test image file")
 except Exception as e:
-    print(f"✗ Vision Service: FAILED - {e}")
+    print(f"FAIL: Vision Service - {e}")
     import traceback
     traceback.print_exc()
 

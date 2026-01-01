@@ -100,13 +100,13 @@ The platform employs a dual-model approach for robust image analysis:
 
 **Geospatial Intelligence**
 
-- **PostGIS Integration**: Leverages enterprise-grade spatial database extensions for complex geographic queries.
+- **PostGIS-Powered Spatial Clustering**: Production-grade implementation of ST_ClusterDBSCAN algorithm analyzes incident locations in real time, automatically grouping reports within 500-meter radius zones. The system identifies high-density areas requiring immediate resource deployment, preventing scattered response efforts across isolated incidents.
 
-- **ST_ClusterDBSCAN Algorithm**: Implements density-based spatial clustering to identify incident concentration zones. Configurable parameters allow adaptation to different geographic scales and incident densities.
+- **Density-Based Grouping**: DBSCAN clustering with configurable epsilon (distance threshold) and minimum points parameters adapts to varying geographic scales and incident patterns. Algorithm processes latitude/longitude coordinates through PostGIS geometry functions, executing spatial queries with millisecond response times.
 
-- **Real-time Heatmap Generation**: Produces dynamic density visualizations for rapid hotspot identification.
+- **Automated Cluster Analysis**: Backend services compute cluster statistics including incident counts, geographic centroids, dominant disaster types, and priority scores derived from urgency levels. Results inform resource allocation decisions by highlighting areas with multiple concurrent emergencies.
 
-- **Geographic Proximity Analysis**: Calculates spatial relationships between incidents to support resource allocation decisions.
+- **Dynamic Visualization**: Interactive map interface renders cluster markers displaying aggregated incident data. Users can expand clusters to view individual reports, track geographic patterns, and monitor how incident concentrations evolve during active disaster scenarios.
 
 ### Dashboard and Analytics
 
@@ -116,6 +116,15 @@ The platform employs a dual-model approach for robust image analysis:
 - Key performance indicators tracking response times and incident resolution rates
 - Status distribution visualization across pending, active, and resolved incidents
 - Temporal trend analysis with configurable time windows
+- System health monitoring with API latency tracking and error rate metrics
+
+**Cluster Intelligence Dashboard**
+
+- Visual representation of spatial incident groupings with cluster cards displaying aggregated statistics
+- Dominant incident type identification per cluster using statistical mode calculation
+- Priority scoring system converting urgency levels to numerical values for resource allocation
+- Recommended action generation based on cluster characteristics and disaster types
+- Geographic centroid coordinates for precise emergency response targeting
 
 **Data Visualization**
 
@@ -183,8 +192,8 @@ CrisisFlow implements a three-tier microservices architecture emphasizing separa
 │                    APPLICATION LAYER                         │
 │           FastAPI + Uvicorn (Async/Await)                   │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│  │Incidents │  │Dashboard │  │   AI     │  │  Health  │  │
-│  │   API    │  │   API    │  │   API    │  │   Check  │  │
+│  │Incidents │  │Dashboard │  │   AI     │  │Monitoring│  │
+│  │   API    │  │   API    │  │   API    │  │  System  │  │
 │  └──────────┘  └──────────┘  └──────────┘  └──────────┘  │
 └────────────────────────┬────────────────────────────────────┘
                          │
@@ -217,6 +226,8 @@ CrisisFlow implements a three-tier microservices architecture emphasizing separa
 
 **Microservices Readiness**: Modular router design and isolated AI services enable easy extraction into separate containerized services for horizontal scaling.
 
+**Observability Infrastructure**: Production monitoring system tracks request latency percentiles (P50, P95, P99), endpoint-specific performance metrics, model inference times, and system resource utilization. Health check endpoints provide real-time service status verification.
+
 For comprehensive architectural documentation, refer to [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Technical Stack
@@ -245,6 +256,7 @@ For comprehensive architectural documentation, refer to [ARCHITECTURE.md](ARCHIT
 | Validation | Pydantic | 2.5.3 | Data validation using Python type hints |
 | DB Driver | psycopg2-binary | 2.9.9 | PostgreSQL adapter for Python |
 | Spatial ORM | GeoAlchemy2 | 0.14.3 | Spatial extensions for SQLAlchemy |
+| Monitoring | psutil | 6.1.0 | System and process metrics collection |
 
 ### AI/ML Technologies
 
@@ -435,9 +447,39 @@ DELETE /api/v1/incidents/{id}         # Delete incident (soft delete)
 
 ```http
 GET    /api/v1/dashboard/stats        # Retrieve dashboard statistics
-GET    /api/v1/dashboard/clusters     # Get spatial incident clusters
+GET    /api/v1/dashboard/clusters     # Get spatial incident clusters with DBSCAN grouping
 GET    /api/v1/dashboard/heatmap      # Generate heatmap density data
 GET    /api/v1/dashboard/timeline     # Get temporal incident distribution
+```
+
+**Cluster Response Structure:**
+
+The clustering endpoint returns spatial groupings with comprehensive statistics:
+
+```json
+{
+  "status": "success",
+  "total_clusters": 2,
+  "clusters": [
+    {
+      "cluster_id": 0,
+      "incident_count": 12,
+      "center_latitude": 6.9272,
+      "center_longitude": 79.8612,
+      "incident_ids": [14, 15, 16, 24, 26, 27, 28, 18, 19, 20, 22, 23],
+      "dominant_type": "flood",
+      "priority_score": 0.75,
+      "recommended_action": "evacuate_area"
+    }
+  ],
+  "unclustered_count": 1,
+  "largest_cluster_size": 12,
+  "parameters": {
+    "eps": 0.005,
+    "eps_meters": 556.6,
+    "minpoints": 3
+  }
+}
 ```
 
 #### AI Analysis API
@@ -446,6 +488,55 @@ GET    /api/v1/dashboard/timeline     # Get temporal incident distribution
 POST   /api/v1/ai/analyze-image       # Analyze disaster image
 POST   /api/v1/ai/analyze-text        # Parse emergency text message
 GET    /api/v1/ai/models/status       # Check AI model initialization status
+```
+
+#### Monitoring and Health API
+
+```http
+GET    /health                        # Service health check with database connectivity
+GET    /metrics                       # Comprehensive system metrics and performance data
+GET    /metrics/endpoints             # Per-endpoint latency and error statistics
+GET    /metrics/models                # AI model inference time tracking
+GET    /metrics/system                # CPU, memory, disk, and GPU utilization
+POST   /metrics/reset                 # Reset metrics collector (development only)
+```
+
+**Metrics Response Structure:**
+
+```json
+{
+  "uptime_seconds": 26.97,
+  "uptime_formatted": "0m 26s",
+  "total_requests": 5,
+  "total_errors": 0,
+  "overall_error_rate": 0.0,
+  "requests_per_second": 0.185,
+  "endpoints": {
+    "GET /api/v1/dashboard/clusters": {
+      "total_requests": 1,
+      "error_count": 0,
+      "error_rate": 0.0,
+      "latency_p50": 30.10,
+      "latency_p95": 30.10,
+      "latency_p99": 30.10,
+      "avg_latency": 30.10
+    }
+  },
+  "models": {
+    "EfficientNetV2": {
+      "inference_count": 0,
+      "avg_inference_time": 0,
+      "p50_inference_time": 0,
+      "p95_inference_time": 0
+    }
+  },
+  "system": {
+    "cpu_percent": 3.8,
+    "memory_percent": 23.5,
+    "disk_percent": 3.2,
+    "gpu_available": false
+  }
+}
 ```
 
 ### Request/Response Examples
@@ -577,20 +668,44 @@ curl -X GET "http://localhost:8000/api/v1/dashboard/stats"
 
 **Clustering Algorithm:**
 
-The system employs ST_ClusterDBSCAN, a density-based spatial clustering algorithm that groups nearby incidents without requiring predetermined cluster counts.
+The system implements ST_ClusterDBSCAN, a density-based spatial clustering algorithm from PostGIS that identifies high-concentration incident zones without requiring predetermined cluster counts. Unlike k-means clustering, DBSCAN adapts to irregular spatial distributions and automatically identifies outliers.
 
-**Parameters:**
+**Algorithm Parameters:**
 
-- `eps`: Maximum distance between points (default: 0.005 degrees ≈ 500 meters)
-- `min_points`: Minimum cluster size (default: 3 incidents)
+- `eps`: Maximum distance between points in degrees (default: 0.005 ≈ 556 meters at equator)
+- `minpoints`: Minimum incidents required to form a cluster (default: 3)
+- `time_window`: Only clusters incidents from the last 24 hours
+- `status_filter`: Excludes resolved incidents from clustering analysis
 
 **Clustering Process:**
 
-1. Query all active incidents with geographic coordinates
-2. Execute ST_ClusterDBSCAN with configured parameters
-3. Calculate cluster centroids and bounding boxes
-4. Aggregate incident counts per cluster
-5. Rank clusters by incident density and urgency levels
+1. Query active incidents with valid coordinates from the database
+2. Execute PostGIS ST_ClusterDBSCAN with ST_MakePoint geometry construction
+3. Calculate cluster centroids using AVG(latitude) and AVG(longitude)
+4. Determine dominant incident type per cluster using MODE() statistical function
+5. Compute priority scores from urgency level distribution
+6. Generate recommended actions based on cluster characteristics
+7. Return structured JSON with cluster metadata and incident IDs
+
+**Priority Score Calculation:**
+
+Urgency levels convert to numerical weights:
+- CRITICAL: 1.0
+- HIGH: 0.75
+- MEDIUM: 0.5
+- LOW: 0.25
+
+Cluster priority score represents the average urgency weight across all incidents in the cluster, enabling resource allocation based on severity concentration.
+
+**Recommended Action Mapping:**
+
+The system provides actionable guidance based on dominant incident type:
+- Flood clusters: evacuate_area
+- Fire clusters: deploy_firefighters
+- Road blockage clusters: clear_road
+- Building damage clusters: structural_inspection
+- Medical emergency clusters: send_ambulance
+- Resource shortage clusters: distribute_supplies
 
 ### Performance Optimization
 
@@ -598,6 +713,8 @@ The system employs ST_ClusterDBSCAN, a density-based spatial clustering algorith
 **Connection Pooling**: Database connections reused across requests
 **Async Processing**: Non-blocking I/O for concurrent request handling
 **Vector Indexing**: IVFFlat index on embeddings for fast similarity search
+**Spatial Indexing**: PostGIS GIST indexes on geometry columns for millisecond-scale spatial queries
+**Metrics Collection**: Rolling window data structure (1000 samples) prevents unbounded memory growth in monitoring system
 
 ## Configuration
 

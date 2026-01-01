@@ -13,7 +13,7 @@ API_URL = f"{BASE_URL}/api/v1"
 
 def print_status(test_name, success, message=""):
     """Print test result with formatting"""
-    status = "✓" if success else "✗"
+    status = "PASS" if success else "FAIL"
     color = "\033[92m" if success else "\033[91m"
     reset = "\033[0m"
     print(f"{color}{status}{reset} {test_name}")
@@ -187,7 +187,7 @@ def run_all_tests():
     tests_total = 0
     
     # Core functionality tests
-    print("🔧 Core Functionality Tests")
+    print("Core Functionality Tests")
     print("-"*60)
     
     tests = [
@@ -206,7 +206,7 @@ def run_all_tests():
     print()
     
     # AI functionality tests
-    print("🤖 AI Functionality Tests")
+    print("AI Functionality Tests")
     print("-"*60)
     
     ai_tests = [
@@ -222,7 +222,7 @@ def run_all_tests():
     print()
     
     # Integration tests
-    print("🔗 Integration Tests")
+    print("Integration Tests")
     print("-"*60)
     
     tests_total += 1
@@ -236,10 +236,10 @@ def run_all_tests():
     print("="*60)
     
     if tests_passed == tests_total:
-        print("\n✓ All tests passed! CrisisFlow is working correctly.")
+        print("\nAll tests passed! CrisisFlow is working correctly.")
         return 0
     else:
-        print(f"\n✗ {tests_total - tests_passed} test(s) failed. Please check the errors above.")
+        print(f"\n{tests_total - tests_passed} test(s) failed. Please check the errors above.")
         print("\nTroubleshooting:")
         print("  1. Ensure backend is running: uvicorn app.main:app --reload")
         print("  2. Check database connection in .env file")

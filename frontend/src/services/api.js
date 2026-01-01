@@ -11,7 +11,12 @@ const api = axios.create({
 
 // Incidents API
 export const incidentAPI = {
-  // Create new incident with image
+  /**
+   * Create incident report with optional image attachment
+   * @param {Object} data - Incident data including location, title, description, type, and reporter info
+   * @param {File} image - Optional image file
+   * @returns {Promise<Object>} Created incident object
+   */
   create: async (data, image = null) => {
     const formData = new FormData();
     formData.append('latitude', data.latitude);
@@ -38,7 +43,11 @@ export const incidentAPI = {
     return response.data;
   },
 
-  // List incidents with filters
+  /**
+   * Retrieve paginated list of incidents with optional filters
+   * @param {Object} params - Query parameters (page, page_size, status, incident_type, urgency)
+   * @returns {Promise<Object>} Paginated incident list
+   */
   list: async (params = {}) => {
     const response = await api.get('/incidents/', { params });
     return response.data;
@@ -73,13 +82,19 @@ export const incidentAPI = {
 
 // Dashboard API
 export const dashboardAPI = {
-  // Get statistics
+  /**
+   * Retrieve aggregated dashboard statistics
+   * @returns {Promise<Object>} Dashboard statistics object
+   */
   getStats: async () => {
     const response = await api.get('/dashboard/stats');
     return response.data;
   },
 
-  // Get clusters
+  /**
+   * Retrieve geospatial incident clusters
+   * @returns {Promise<Object>} Cluster data with locations and incident counts
+   */
   getClusters: async () => {
     const response = await api.get('/dashboard/clusters');
     return response.data;

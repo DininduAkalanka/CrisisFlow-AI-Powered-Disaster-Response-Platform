@@ -13,7 +13,7 @@ async def demo_scenarios():
     """Demonstrate various fake/real scenarios"""
     
     print("=" * 70)
-    print("🔍 CRISIS FLOW - AI FAKE DETECTION DEMONSTRATION")
+    print("CRISIS FLOW - AI FAKE DETECTION DEMONSTRATION")
     print("=" * 70)
     
     scenarios = [
@@ -44,7 +44,7 @@ async def demo_scenarios():
         {
             "name": "Real Flood Image",
             "description": "User uploads flooded street photo",
-            "expected": "ACCEPTED ✅",
+            "expected": "ACCEPTED",
             "ai_detects": "'flood' + 'building_damage'",
             "confidence": "92% + 67%",
             "action": "Auto-verify, escalate to CRITICAL"
@@ -52,7 +52,7 @@ async def demo_scenarios():
         {
             "name": "Fire Incident",
             "description": "User uploads building fire photo",
-            "expected": "ACCEPTED ✅",
+            "expected": "ACCEPTED",
             "ai_detects": "'fire' + 'building_damage'",
             "confidence": "89% + 72%",
             "action": "Immediate dispatch alert"
@@ -63,14 +63,14 @@ async def demo_scenarios():
         print(f"\n{'─' * 70}")
         print(f"SCENARIO {i}: {scenario['name']}")
         print(f"{'─' * 70}")
-        print(f"📸 Image: {scenario['description']}")
-        print(f"🤖 AI Detects: {scenario['ai_detects']}")
-        print(f"📊 Confidence: {scenario['confidence']}")
-        print(f"✅ Expected: {scenario['expected']}")
-        print(f"⚡ Action: {scenario['action']}")
+        print(f"Image: {scenario['description']}")
+        print(f"AI Detects: {scenario['ai_detects']}")
+        print(f"Confidence: {scenario['confidence']}")
+        print(f"Expected: {scenario['expected']}")
+        print(f"Action: {scenario['action']}")
     
     print(f"\n{'=' * 70}")
-    print("🧠 HOW THE AI DECISION WORKS")
+    print("HOW THE AI DECISION WORKS")
     print(f"{'=' * 70}")
     print("""
 1️⃣ EfficientNetV2 analyzes the image:
@@ -83,8 +83,8 @@ async def demo_scenarios():
    ```
    
    Translation:
-   - If "safe" detected → is_disaster = FALSE → REJECT ❌
-   - If "flood/fire/damage" detected → is_disaster = TRUE → ACCEPT ✅
+   - If "safe" detected → is_disaster = FALSE → REJECT
+   - If "flood/fire/damage" detected → is_disaster = TRUE → ACCEPT
    
 3️⃣ Application Response:
    
@@ -104,7 +104,7 @@ async def demo_scenarios():
     """)
     
     print(f"{'=' * 70}")
-    print("📱 USER EXPERIENCE")
+    print("USER EXPERIENCE")
     print(f"{'=' * 70}")
     print("""
 UPLOADING FAKE IMAGE:
@@ -131,7 +131,7 @@ Dashboard: Incident marked as "Critical" (red marker on map)
     """)
     
     print(f"{'=' * 70}")
-    print("💾 DATABASE STORAGE")
+    print("DATABASE STORAGE")
     print(f"{'=' * 70}")
     print("""
 FAKE REPORT (Laptop Image):

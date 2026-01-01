@@ -14,6 +14,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.core.config import settings
+from app.core.monitoring import monitor_model_inference
 
 
 class VisionService:
@@ -58,11 +59,12 @@ class VisionService:
             self.clip_model, self.clip_preprocess = clip.load("ViT-B/32", device=self.device)
             self.clip_model.eval()
             
-            print("✓ Vision models loaded successfully")
+            print("Vision models loaded successfully")
         except Exception as e:
-            print(f"✗ Error loading vision models: {str(e)}")
+            print(f"Error loading vision models: {str(e)}")
             raise
     
+    @monitor_model_inference("EfficientNetV2")
     async def analyze_image(self, image_path: str, db: Session) -> Dict[str, any]:
         """
         Analyze disaster image with EfficientNetV2 + CLIP
@@ -81,8 +83,7 @@ class VisionService:
             # Load and preprocess image
             image = Image.open(image_path).convert('RGB')
             
-            # ===== STEP 1: Multi-Label Classification (EfficientNetV2) =====
-            # Prepare image for EfficientNet
+            # Multi-label classification using EfficientNetV2
             img_tensor = timm.data.transforms_factory.create_transform(
                 **timm.data.resolve_data_config(self.efficientnet_model.pretrained_cfg)
             )(image).unsqueeze(0).to(self.device)
@@ -108,13 +109,13 @@ class VisionService:
                     "confidence": float(probs[max_idx])
                 }]
             
-            # ===== STEP 2: Generate CLIP Embedding (512-dim) =====
+            # Generate CLIP embedding for semantic similarity
             clip_input = self.clip_preprocess(image).unsqueeze(0).to(self.device)
             with torch.no_grad():
                 clip_embedding = self.clip_model.encode_image(clip_input)
                 clip_embedding = F.normalize(clip_embedding, dim=-1).cpu().numpy()[0]  # L2 normalize
             
-            # ===== STEP 3: Duplicate Detection via pgvector =====
+            # Duplicate detection via pgvector cosine similarity
             is_duplicate = False
             duplicate_info = None
             
@@ -156,14 +157,14 @@ class VisionService:
                             "similarity": float(result[2])
                         }
                 else:
-                    print("⚠ pgvector not installed - duplicate detection disabled")
+                    print("Warning: pgvector not installed - duplicate detection disabled")
             except Exception as e:
-                print(f"⚠ Duplicate detection failed: {str(e)}")
+                print(f"Warning: Duplicate detection failed: {str(e)}")
                 # Rollback the transaction to prevent "transaction aborted" errors
                 db.rollback()
                 # Continue without duplicate detection
             
-            # ===== STEP 4: Return Results =====
+
             return {
                 "classification": {
                     "detected_classes": detected_classes,
@@ -181,7 +182,7 @@ class VisionService:
             }
             
         except Exception as e:
-            print(f"✗ Error in analyze_image: {str(e)}")
+            print(f"Error in analyze_image: {str(e)}")
             import traceback
             traceback.print_exc()
             return {

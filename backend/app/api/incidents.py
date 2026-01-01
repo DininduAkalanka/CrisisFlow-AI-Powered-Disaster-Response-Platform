@@ -37,8 +37,9 @@ async def create_incident(
     db: Session = Depends(get_db)
 ):
     """
-    Create a new incident report
-    Supports multipart/form-data for image upload
+    Create incident report with AI-powered analysis including NLP entity extraction,
+    image classification via EfficientNetV2, semantic embedding generation using CLIP,
+    and duplicate detection via pgvector cosine similarity
     """
     # Validate incident type
     try:
@@ -50,7 +51,7 @@ async def create_incident(
     incident = Incident(
         latitude=latitude,
         longitude=longitude,
-        # location field removed (PostGIS disabled)
+        # location field removed
         title=title,
         description=description,
         incident_type=incident_type_enum,
@@ -59,7 +60,7 @@ async def create_incident(
         status=IncidentStatus.PENDING
     )
     
-    # Analyze text with NLP (GLiNER-based parsing)
+    # Analyze text with NLP
     nlp_service = get_nlp_service()
     text_analysis = nlp_service.parse_sos(f"{title}. {description}")
     
@@ -96,7 +97,7 @@ async def create_incident(
         
         incident.image_url = f"/uploads/{filename}"
         
-        # Analyze image (Vision Agent: EfficientNetV2 + CLIP)
+        # Analyze image with Vision Agent
         vision_service = get_vision_service()
         image_analysis = await vision_service.analyze_image(filepath, db)
         
@@ -107,7 +108,7 @@ async def create_incident(
             if len(embedding) == 512:
                 incident.clip_embedding = embedding.tolist() if hasattr(embedding, 'tolist') else list(embedding)
             else:
-                print(f"⚠️  Warning: CLIP embedding has {len(embedding)} dimensions, expected 512. Skipping embedding storage.")
+                print(f"Warning: CLIP embedding has {len(embedding)} dimensions, expected 512. Skipping embedding storage.")
                 incident.clip_embedding = None
         
         # Check if image is disaster-related

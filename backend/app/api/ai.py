@@ -18,8 +18,8 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 @router.post("/analyze-image")
 async def analyze_image(image: UploadFile = File(...), db: Session = Depends(get_db)) -> Dict:
     """
-    Analyze an uploaded disaster image using Vision Agent (EfficientNetV2 + CLIP)
-    Returns multi-label classification, CLIP embeddings, and duplicate detection
+    Analyze disaster image using SOTA vision models (EfficientNetV2 + CLIP)
+    Returns multi-label classification, 512-dim semantic embeddings, and duplicate detection results
     """
     # Validate file type
     if not image.content_type.startswith("image/"):
@@ -59,9 +59,8 @@ async def analyze_image(image: UploadFile = File(...), db: Session = Depends(get
 @router.post("/analyze-text")
 def analyze_text(text: str) -> Dict:
     """
-    Analyze incident report text using GLiNER (Zero-shot NER)
-    Returns extracted entities: Location, Urgency, Resources, Person Count, Contact Info
-    Supports Singlish and fragmented text
+    Extract entities from incident report text using GLiNER zero-shot NER
+    Supports multilingual and fragmented text, returns location, urgency, resources, contacts, and person count
     """
     if not text or len(text.strip()) < 10:
         raise HTTPException(status_code=400, detail="Text must be at least 10 characters")
@@ -104,7 +103,7 @@ def get_models_status() -> Dict:
 
 @router.post("/models/load")
 def load_models() -> Dict:
-    """Pre-load all SOTA AI models (EfficientNetV2, CLIP, GLiNER)"""
+    """Pre-load AI models into memory for faster inference (EfficientNetV2, CLIP, GLiNER)"""
     
     try:
         vision_service = get_vision_service()

@@ -14,6 +14,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
+/**
+ * MapView Component
+ * Interactive map displaying incident markers with real-time filtering and refresh capabilities
+ * Uses Leaflet for map rendering with OpenStreetMap tiles
+ */
 function MapView() {
   const [incidents, setIncidents] = useState([]);
   const [loading, setLoading] = useState(true);

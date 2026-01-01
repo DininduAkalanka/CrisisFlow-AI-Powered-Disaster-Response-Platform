@@ -41,6 +41,9 @@ requests==2.31.0
 aiofiles==23.2.1
 numpy==2.2.1
 
+# ===== Monitoring & Performance =====
+psutil==6.1.0  # System resource monitoring (CPU, Memory, Disk)
+
 # ===== Testing =====
 pytest==7.4.4
 pytest-asyncio==0.23.3

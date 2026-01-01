@@ -34,92 +34,109 @@ class GeospatialClusteringService:
         Returns:
             Dict with clustering statistics
         """
-        # PostGIS disabled - return empty clustering result
-        return {
-            "status": "success",
-            "total_clusters": 0,
-            "clusters": [],
-            "unclustered_count": 0,
-            "largest_cluster_size": 0,
-            "parameters": {
-                "eps": self.eps,
-                "minpoints": self.minpoints
-            },
-            "note": "PostGIS clustering disabled"
-        }
-        
-        # Original PostGIS code (disabled):
-        """
         try:
-            # ===== STEP 1: Execute PostGIS ST_ClusterDBSCAN =====
-            query = text(\"\"\"
+            # Use simple geometry-based clustering (no geography type needed)
+            # ST_ClusterDBSCAN with geometry works with degrees
+            query = text("""
                 WITH clustered AS (
                     SELECT 
                         id,
                         title,
                         latitude,
                         longitude,
-                        ST_ClusterDBSCAN(location, eps := :eps, minpoints := :minpoints) 
-                            OVER () AS cluster_id
+                        ST_ClusterDBSCAN(
+                            ST_SetSRID(ST_MakePoint(longitude, latitude), 4326),
+                            eps := :eps, 
+                            minpoints := :minpoints
+                        ) OVER () AS cluster_id
                     FROM incidents
-                    WHERE status != 'resolved'
+                    WHERE status != 'RESOLVED'
                         AND created_at >= NOW() - INTERVAL '24 hours'
+                        AND latitude IS NOT NULL
+                        AND longitude IS NOT NULL
                 )
                 UPDATE incidents
                 SET cluster_id = clustered.cluster_id
                 FROM clustered
                 WHERE incidents.id = clustered.id
                 RETURNING incidents.cluster_id;
-            \"\"\")
+            """)
+            
+            # For geometry (not geography), eps is in degrees
+            # 0.005 degrees ≈ 500-550 meters at equator
             
             result = db.execute(
                 query,
                 {
-                    "eps": self.eps,
+                    "eps": self.eps,  # Use degrees directly for geometry
                     "minpoints": self.minpoints
                 }
             )
             db.commit()
             
-            # ===== STEP 2: Collect clustering statistics =====
-            stats_query = text(\"\"\"
+            # Collect clustering statistics
+            stats_query = text("""
                 SELECT 
                     cluster_id,
                     COUNT(*) as incident_count,
                     AVG(latitude) as center_lat,
                     AVG(longitude) as center_lon,
-                    ARRAY_AGG(id) as incident_ids
+                    ARRAY_AGG(id) as incident_ids,
+                    MODE() WITHIN GROUP (ORDER BY incident_type) as dominant_type,
+                    AVG(CASE urgency_level 
+                        WHEN 'CRITICAL' THEN 1.0
+                        WHEN 'HIGH' THEN 0.75
+                        WHEN 'MEDIUM' THEN 0.5
+                        WHEN 'LOW' THEN 0.25
+                        ELSE 0.5
+                    END) as priority_score
                 FROM incidents
                 WHERE cluster_id IS NOT NULL
-                    AND status != 'resolved'
+                    AND status != 'RESOLVED'
                     AND created_at >= NOW() - INTERVAL '24 hours'
                 GROUP BY cluster_id
                 ORDER BY incident_count DESC;
-            \"\"\")
+            """)
             
             clusters_result = db.execute(stats_query).fetchall()
             
+            # Map action recommendations based on dominant type and priority
+            action_map = {
+                'FIRE': 'deploy_firefighters',
+                'FLOOD': 'evacuate_area',
+                'ROAD_BLOCK': 'clear_road',
+                'BUILDING_DAMAGE': 'structural_inspection',
+                'MEDICAL': 'send_ambulance',
+                'RESOURCE_SHORTAGE': 'distribute_supplies',
+                'OTHER': 'assess_situation'
+            }
+            
             clusters = []
             for row in clusters_result:
+                dominant_type = row[5] if row[5] else 'OTHER'
                 clusters.append({
                     "cluster_id": row[0],
                     "incident_count": row[1],
-                    "center": {
-                        "latitude": float(row[2]),
-                        "longitude": float(row[3])
-                    },
-                    "incident_ids": row[4]
+                    "center_latitude": float(row[2]),
+                    "center_longitude": float(row[3]),
+                    "incident_ids": row[4],
+                    "dominant_type": dominant_type.lower(),
+                    "priority_score": float(row[6]) if row[6] else 0.5,
+                    "recommended_action": action_map.get(dominant_type, 'assess_situation')
                 })
             
             # Count unclustered incidents
-            unclustered_query = text(\"\"\"
+            unclustered_query = text("""
                 SELECT COUNT(*) 
                 FROM incidents 
                 WHERE cluster_id IS NULL 
-                    AND status != 'resolved'
+                    AND status != 'RESOLVED'
                     AND created_at >= NOW() - INTERVAL '24 hours';
-            \"\"\")
+            """)
             unclustered_count = db.execute(unclustered_query).scalar()
+            
+            # Calculate approximate meters for reporting
+            eps_meters = self.eps * 111320  # Convert degrees to meters at equator
             
             return {
                 "status": "success",
@@ -129,12 +146,13 @@ class GeospatialClusteringService:
                 "largest_cluster_size": clusters[0]["incident_count"] if clusters else 0,
                 "parameters": {
                     "eps": self.eps,
+                    "eps_meters": eps_meters,
                     "minpoints": self.minpoints
                 }
             }
             
         except Exception as e:
-            print(f"✗ Error in update_incident_clusters: {str(e)}")
+            print(f"Error in update_incident_clusters: {str(e)}")
             import traceback
             traceback.print_exc()
             db.rollback()
@@ -145,7 +163,6 @@ class GeospatialClusteringService:
                 "clusters": [],
                 "unclustered_count": 0
             }
-        """
 
 
 # Singleton instance

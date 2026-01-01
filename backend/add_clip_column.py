@@ -6,4 +6,4 @@ with engine.connect() as conn:
     # Add clip_embedding column
     conn.execute(text("ALTER TABLE incidents ADD COLUMN IF NOT EXISTS clip_embedding TEXT"))
     conn.commit()
-    print("✓ clip_embedding column added to incidents table")
+    print("clip_embedding column added to incidents table")

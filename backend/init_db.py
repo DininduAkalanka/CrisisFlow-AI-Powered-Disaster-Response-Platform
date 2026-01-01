@@ -15,7 +15,7 @@ def create_tables():
         # Create all tables
         Base.metadata.create_all(bind=engine)
         
-        print("✓ Database tables created successfully!")
+        print("Database tables created successfully!")
         print("\nCreated tables:")
         print("  - incidents")
         print("  - users")
@@ -24,7 +24,7 @@ def create_tables():
         return True
         
     except Exception as e:
-        print(f"✗ Error creating tables: {str(e)}")
+        print(f"Error creating tables: {str(e)}")
         return False
 
 
@@ -37,10 +37,10 @@ def check_postgis():
         with engine.connect() as conn:
             result = conn.execute(text("SELECT PostGIS_version();"))
             version = result.fetchone()[0]
-            print(f"✓ PostGIS is installed: {version}")
+            print(f"PostGIS is installed: {version}")
             return True
     except Exception as e:
-        print(f"✗ PostGIS check failed: {str(e)}")
+        print(f"PostGIS check failed: {str(e)}")
         print("\nPlease ensure PostGIS is installed:")
         print("  1. Install PostgreSQL with PostGIS")
         print("  2. Connect to your database")
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     
     # Check PostGIS
     if not check_postgis():
-        print("\n⚠ Warning: PostGIS not available. Spatial features will not work.")
+        print("\nWarning: PostGIS not available. Spatial features will not work.")
         response = input("Continue anyway? (y/N): ")
         if response.lower() != 'y':
             sys.exit(1)
@@ -65,10 +65,10 @@ if __name__ == "__main__":
     
     # Create tables
     if create_tables():
-        print("\n✓ Database initialization complete!")
+        print("\nDatabase initialization complete!")
         print("\nNext steps:")
         print("  1. Start the backend: uvicorn app.main:app --reload")
         print("  2. Start the frontend: cd frontend && npm run dev")
     else:
-        print("\n✗ Database initialization failed!")
+        print("\nDatabase initialization failed!")
         sys.exit(1)

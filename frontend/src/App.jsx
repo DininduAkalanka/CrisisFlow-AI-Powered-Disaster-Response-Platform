@@ -85,7 +85,7 @@ function App() {
                   }`}
                   onClick={() => handleNavClick('map')}
                 >
-                  🗺️ Map View
+                  Map View
                 </Link>
                 <Link
                   to="/dashboard"
@@ -96,14 +96,14 @@ function App() {
                   }`}
                   onClick={() => handleNavClick('dashboard')}
                 >
-                  📊 Dashboard
+                  Dashboard
                 </Link>
                 <Link
                   to="/report"
                   className="block px-4 py-3 bg-white text-crisis-red rounded-lg hover:bg-red-50 transition font-semibold"
                   onClick={() => handleNavClick('report')}
                 >
-                  🚨 Report Incident
+                  Report Incident
                 </Link>
               </nav>
             )}

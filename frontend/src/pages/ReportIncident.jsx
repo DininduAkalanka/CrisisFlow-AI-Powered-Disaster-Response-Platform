@@ -62,6 +62,11 @@ const INCIDENT_TYPES = [
   },
 ];
 
+/**
+ * ReportIncident Component
+ * Form for submitting emergency incident reports with location search, image upload, and AI-powered validation
+ * Integrates with Nominatim geocoding API for location search and browser geolocation
+ */
 function ReportIncident() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -247,11 +252,7 @@ function ReportIncident() {
         reporter_contact: formData.reporter_contact.trim() || undefined,
       };
       
-      console.log('Submitting incident data:', data); // Debug log
-      
       const response = await incidentAPI.create(data, formData.image);
-      
-      console.log('Incident created successfully:', response); // Debug log
       
       setSuccess(true);
       
@@ -262,7 +263,6 @@ function ReportIncident() {
       
     } catch (err) {
       console.error('Error submitting incident:', err);
-      console.error('Error response:', err.response); // Debug log
       
       // Better error message handling
       let errorMessage = 'Failed to submit incident. Please try again.';

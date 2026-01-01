@@ -7,6 +7,7 @@ from typing import Dict, List, Optional
 from gliner import GLiNER
 import torch
 from app.core.config import settings
+from app.core.monitoring import monitor_model_inference
 
 
 class NLPService:
@@ -51,12 +52,13 @@ class NLPService:
                 local_files_only=False
             )
             self.gliner_model.to(self.device)
-            print("✓ GLiNER model loaded successfully")
+            print("GLiNER model loaded successfully")
         except Exception as e:
-            print(f"✗ Error loading GLiNER model: {str(e)}")
-            print("⚠ Tip: Try running PowerShell as Administrator or enable Developer Mode")
+            print(f"Error loading GLiNER model: {str(e)}")
+            print("Tip: Try running PowerShell as Administrator or enable Developer Mode")
             raise
     
+    @monitor_model_inference("GLiNER")
     def parse_sos(self, text: str) -> Dict[str, any]:
         """
         Parse SOS message and extract actionable entities using GLiNER
@@ -74,14 +76,14 @@ class NLPService:
             # Preprocess: Clean and normalize text
             cleaned_text = self._preprocess_text(text)
             
-            # ===== STEP 1: GLiNER Entity Extraction =====
+            # Entity extraction using GLiNER
             entities = self.gliner_model.predict_entities(
                 cleaned_text,
                 self.entity_labels,
                 threshold=0.3  # Lower threshold for noisy text
             )
             
-            # ===== STEP 2: Post-process entities =====
+            # Post-process entities
             parsed_entities = {
                 "location": [],
                 "urgency": [],
@@ -105,18 +107,18 @@ class NLPService:
                 elif label == "contact_info":
                     parsed_entities["contact_info"].append(text_span)
             
-            # ===== STEP 3: Regex-based fallback for phone numbers =====
+            # Regex-based fallback for phone numbers
             phone_matches = self.phone_pattern.findall(text)
             if phone_matches:
                 parsed_entities["contact_info"].extend(phone_matches)
             
-            # ===== STEP 4: Extract person count from numbers =====
+            # Extract person count from numbers
             count_matches = self.person_count_pattern.findall(text.lower())
             if count_matches:
                 for count, _ in count_matches:
                     parsed_entities["person_count"].append(count)
             
-            # ===== STEP 5: Assess urgency level =====
+            # Assess urgency level
             urgency_level = self._assess_urgency(cleaned_text, parsed_entities["urgency"])
             
             return {
@@ -128,7 +130,7 @@ class NLPService:
             }
             
         except Exception as e:
-            print(f"✗ Error in parse_sos: {str(e)}")
+            print(f"Error in parse_sos: {str(e)}")
             import traceback
             traceback.print_exc()
             return {
